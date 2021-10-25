@@ -3,7 +3,6 @@ import appdirs
 import sqlite3
 import gzip
 import pandas as pd
-from sqlalchemy import create_engine
 import urllib.request
 
 def downloader(url:str, name:str):
@@ -23,7 +22,7 @@ def get_cache_dir(subdir:str=None):
     """Function for getting cache directory to store reused files like kernels, or scratch space for autotuning, etc.
 
     Args:
-        subdir (str, optional): [description]. Defaults to None
+        subdir (str, optional): Directory to save data. Defaults to None
 
     Returns:
         str: Path to package cache directory
@@ -40,25 +39,39 @@ def get_cache_dir(subdir:str=None):
     if not os.path.exists(cache_dir):
         os.makedirs(cache_dir)
 
-    return cache_dir 
-
-def create_db(name:str):
-    """Creates an SQLite database to store metadata.
-
-    Args:
-        name (str): Database name.
-
-    Returns:
-        [type]: [description]
-    """
-    return create_engine(name)
+    return cache_dir
 
 def update_db():
     pass
 
-def _extract_metadata(file:str, chunksize = 10**4):
+def extract(file:str, chunksize:int = 10**4):
+    """Extracts a compressed CSV file and stores it into a pandas DataFrame as chuncks.
+
+    Args:
+        file (str): Path and name of the CSV file
+        chunksize (int, optional): Chunk size. Defaults to 10**4
+
+    Returns:
+        DataFrame: Pandas DataFrame into chunks
+    """
 
     f = gzip.open(file)
-    metadata = pd.read_csv(f, chunksize = chunksize)
+    data = pd.read_csv(f, chunksize = chunksize)
 
-    return metadata
+    return f, data
+
+def create_connection(db_file:str):
+    """Create a database connection to a SQLite database.
+
+    Args:
+        db_file (str): [description]
+    """
+    conn = None
+    try:
+        conn = sqlite3.connect(db_file)
+        print(sqlite3.version)
+    except ValueError as error:
+        print(error)
+    finally:
+        if conn:
+            conn.close()
