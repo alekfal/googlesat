@@ -17,7 +17,6 @@ def downloader(url:str, name:str):
     file = urllib.request.urlretrieve(url, name)
     return file
 
-
 def get_cache_dir(subdir:str=None):
     """Function for getting cache directory to store reused files like kernels, or scratch space for autotuning, etc.
 
@@ -41,11 +40,8 @@ def get_cache_dir(subdir:str=None):
 
     return cache_dir
 
-def update_db():
-    pass
-
 def extract(file:str, chunksize:int = 10**4):
-    """Extracts a compressed CSV file and stores it into a pandas DataFrame as chuncks.
+    """Extracts a compressed CSV file and stores it into a pandas DataFrame as chunks.
 
     Args:
         file (str): Path and name of the CSV file
@@ -54,7 +50,7 @@ def extract(file:str, chunksize:int = 10**4):
     Returns:
         DataFrame: Pandas DataFrame into chunks
     """
-
+    print(f"Extracting {file}...")
     f = gzip.open(file)
     data = pd.read_csv(f, chunksize = chunksize)
 
@@ -64,14 +60,55 @@ def create_connection(db_file:str):
     """Create a database connection to a SQLite database.
 
     Args:
-        db_file (str): [description]
+        db_file (str): Path to SQLite database
     """
+    print(f"Connecting to {db_file}...")
     conn = None
     try:
         conn = sqlite3.connect(db_file)
-        print(sqlite3.version)
     except ValueError as error:
         print(error)
     finally:
         if conn:
-            conn.close()
+            return conn
+
+def fill_database(connection:sqlite3, data:pd.DataFrame, name:str = "Fill"):
+    for d in data:
+        d.to_sql(name, connection, if_exists = 'append')
+
+def _check_db(db:str, file:str):
+    """Checking if a new database should be created or an existing one should be updated.
+    FROZE
+
+    Args:
+        db (str): Path to SQLite database
+        file (str): Path to index file
+
+    Raises:
+        Exception: Raises if index file does not exist 
+
+    Returns:
+        bool, bool: Two flags if a new one must be created or an existing one should be updated
+    """
+    # No need for this function
+    create_new_db = False
+    update_db = False
+    if os.path.exists(db):
+        db_time_flag = os.stat(db).st_mtime
+    else:
+        print(f"SQLlite {db} database does not exists...")
+        print("A new database will be created...")
+        create_new_db = True
+    
+    if os.path.exists(file):
+        file_time_flag = os.stat(file).st_mtime
+    else:
+        raise Exception(f"File {file} not found!")
+    
+    if create_new_db is False:
+        if (file_time_flag > db_time_flag):
+            print ("Updating database...")
+            update_db = True
+        
+    return create_new_db, update_db
+    
