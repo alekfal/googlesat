@@ -4,18 +4,20 @@ import datetime as dt
 from .utils import extract, get_cache_dir, downloader, create_connection, fill_database
 
 # Sentinel 2 metadata index file links to GCP
-metadata_url = {'L1C': 'http://storage.googleapis.com/gcp-public-data-sentinel-2/index.csv.gz',
+METADATA_URL = {'L1C': 'http://storage.googleapis.com/gcp-public-data-sentinel-2/index.csv.gz',
                 'L2A': 'http://storage.googleapis.com/gcp-public-data-sentinel-2/L2/index.csv.gz',
             }
 
+# Setting available options
+OPTIONS = ['L2A', 'L1C']
+
 def get_metadata(filename:str = 'index.csv.gz', level:str = 'L2A', force_update = False):
     
-    # Setting available options
-    options = ['L2A', 'L1C']
-    if level not in options:
+    if level not in OPTIONS:
         raise ValueError("L2A (BOA) or L1C (TOA) are the only available levels.")
+    
     # Getting link for user defined level
-    url = metadata_url.get(level)
+    url = METADATA_URL.get(level)
     cache = get_cache_dir(subdir = level)
     filename = os.path.join(cache, filename)
     # At first check if the file exists and it is downloaded at the same day if force_update is False
