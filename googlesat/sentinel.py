@@ -65,3 +65,67 @@ def query(db_file:str, table:str, cc_limit, date_start, date_end, tile):
         print(result)
     finally:
         cur.close()
+'''
+def convert_wkt_to_scene(sat, geometry, include_overlap, thresh=0.0):
+    """
+    Args:
+        sat: 'S2', 'ETM', 'OLI_TIRS'
+        geometry: WKT or GeoJSON string
+        include_overlap: if True, use predicate 'intersects', else use predicate 'contains'
+        thresh (float):
+            the fraction of a tile that must intersect and overlap with a
+            region.
+    Returns:
+        List[str]: List of scenes containing the geometry
+    Example:
+        >>> from fels.fels import *  # NOQA
+        >>> sat = 'S2'
+        >>> geometry = json.dumps({
+        >>>     'type': 'Polygon', 'coordinates': [[
+        >>>         [40.4700, -74.2700],
+        >>>         [41.3100, -74.2700],
+        >>>         [41.3100, -71.7500],
+        >>>         [40.4700, -71.7500],
+        >>>         [40.4700, -74.2700],
+        >>>     ]]})
+        >>> include_overlap = True
+        >>> sorted(convert_wkt_to_scene('S2', geometry, include_overlap))
+        ['37CET', '37CEU', '37CEV', '37DEA']
+        >>> sorted(convert_wkt_to_scene('LC', geometry, include_overlap))
+        ['140113', '141112', '141113', ...
+    """
+
+    if sat == 'S2':
+        path = pkg_resources.resource_filename(__name__, os.path.join('data', 'sentinel_2_index_shapefile.shp'))
+    else:
+        path = pkg_resources.resource_filename(__name__, os.path.join('data', 'WRS2_descending.shp'))
+
+    if isinstance(geometry, dict):
+        feat = shp.geometry.shape(geometry)
+    elif isinstance(geometry, str):
+        try:
+            feat = shp.geometry.shape(json.loads(geometry))
+        except json.JSONDecodeError:
+            feat = shp.wkt.loads(geometry)
+    else:
+        raise TypeError(type(geometry))
+
+    gdf = _memo_geopandas_read(path)
+
+    if include_overlap:
+        if thresh > 0:
+            # Requires some minimum overlap
+            overlap = gdf.geometry.intersection(feat).area / feat.area
+            found = gdf[overlap > thresh]
+        else:
+            # Any amount of overlap is ok
+            found = gdf[gdf.geometry.intersects(feat)]
+    else:
+        # This is the bottleneck when the downloaded data exists
+        found = gdf[gdf.geometry.contains(feat)]
+
+    if sat == 'S2':
+        return found.Name.values.tolist()
+    else:
+        return found.WRSPR.values.tolist()
+'''
