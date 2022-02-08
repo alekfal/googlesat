@@ -40,7 +40,15 @@ def get_metadata(filename:str = 'index.csv.gz', level:str = 'L2A', force_update:
                     fill_database(conn, metadata, name = f"Sentinel-2_{level}")
                     conn.close()
         else:
-            raise FileNotFoundError(f"Could not found {filename}.")
+            try:
+                file = downloader(url, filename)
+                db_file = os.path.join(cache, f"db_{level}.db")
+                conn = create_connection(db_file)
+                file, metadata = extract(filename)
+                fill_database(conn, metadata, name = f"Sentinel-2_{level}")
+                conn.close()
+            except:
+                raise FileNotFoundError(f"Could not found {filename}.")
 
     elif force_update is True:
         file = downloader(url, filename)
@@ -65,6 +73,7 @@ def query(db_file:str, table:str, cc_limit, date_start, date_end, tile):
         print(result)
     finally:
         cur.close()
+
 '''
 def convert_wkt_to_scene(sat, geometry, include_overlap, thresh=0.0):
     """
