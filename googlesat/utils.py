@@ -73,5 +73,12 @@ def create_connection(db_file:str):
             return conn
 
 def fill_database(connection:sqlite3, data:pd.DataFrame, name:str = "Fill"):
+    """Fill an SQL database from pandas dataframe chunks.
+
+    Args:
+        connection (sqlite3): SQLite3 database path
+        data (pd.DataFrame): Data in chunks
+        name (str, optional): Name of the created table. Defaults to "Fill".
+    """
     for d in data:
         d.to_sql(name, connection, if_exists = 'append')
