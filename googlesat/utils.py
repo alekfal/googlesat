@@ -82,3 +82,9 @@ def fill_database(connection:sqlite3, data:pd.DataFrame, name:str = "Fill"):
     """
     for d in data:
         d.to_sql(name, connection, if_exists = 'append')
+
+def get_links(data:pd.DataFrame):
+    data["URL"] = data["BASE_URL"]
+    data["URL"] = data["URL"].replace("gs://", "http://storage.googleapis.com/", regex = True)
+
+    return data
