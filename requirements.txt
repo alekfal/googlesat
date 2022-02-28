@@ -1,2 +1,4 @@
 appdirs
 pandas
+geopandas
+rtree
