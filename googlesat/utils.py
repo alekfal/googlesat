@@ -5,19 +5,21 @@ import gzip
 import pandas as pd
 import urllib.request
 
-def downloader(url:str, name:str):
+def downloader(url:str, name:str) -> str:
     """Download method with urllib library.
 
     Args:
         url (str): Link to file
         name (str): Saving path with name of the downloaded file
+    Returns:
+        file (str): Path to file
     """
     print(f"Downloading file {name} from {url}...")
     print("This may take a while...")
     file = urllib.request.urlretrieve(url, name)
     return file
 
-def get_cache_dir(subdir:str=None):
+def get_cache_dir(subdir:str=None) -> str:
     """Function for getting cache directory to store reused files like kernels, or scratch space for autotuning, etc.
 
     Args:
@@ -40,7 +42,7 @@ def get_cache_dir(subdir:str=None):
 
     return cache_dir
 
-def extract(file:str, chunksize:int = 10**4):
+def extract(file:str, chunksize:int = 10**4) -> pd.DataFrame:
     """Extracts a compressed CSV file and stores it into a pandas DataFrame as chunks.
 
     Args:
@@ -48,7 +50,7 @@ def extract(file:str, chunksize:int = 10**4):
         chunksize (int, optional): Chunk size. Defaults to 10**4
 
     Returns:
-        DataFrame: Pandas DataFrame into chunks
+        pd.DataFrame: Pandas DataFrame into chunks
     """
     print(f"Extracting {file}...")
     f = gzip.open(file)
@@ -83,7 +85,15 @@ def fill_database(connection:sqlite3, data:pd.DataFrame, name:str = "Fill"):
     for d in data:
         d.to_sql(name, connection, if_exists = 'append')
 
-def get_links(data:pd.DataFrame):
+def get_links(data:pd.DataFrame) -> pd.DataFrame:
+    """Converts google cloud storage links to simple http links
+
+    Args:
+        data (pd.DataFrame): DataFrame with the result from querying the database
+
+    Returns:
+        pd.DataFrame: New DataFrame with http links
+    """
     data["URL"] = data["BASE_URL"]
     data["URL"] = data["URL"].replace("gs://", "http://storage.googleapis.com/", regex = True)
 

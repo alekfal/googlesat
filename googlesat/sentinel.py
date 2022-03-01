@@ -14,8 +14,18 @@ METADATA_URL = {'L1C': 'http://storage.googleapis.com/gcp-public-data-sentinel-2
 # Setting available options
 OPTIONS = ['L2A', 'L1C']
 
-def get_metadata(filename:str = 'index.csv.gz', level:str = 'L2A', force_update:bool = False):
-    
+def get_metadata(filename:str = 'index.csv.gz', level:str = 'L2A', force_update:bool = False) -> str:
+    """Downloads and updates index files from GCP. Also, creates/updates a database with the same
+    data.
+
+    Args:
+        filename (str, optional): Name of CSV file. Defaults to 'index.csv.gz'
+        level (str, optional): Sentinel 2 data level (L2A->BOA, L1C->TOA). Defaults to 'L2A'
+        force_update (bool, optional): Force to update index file. Defaults to False
+
+    Returns:
+        str: Path to database file
+    """
     if level not in OPTIONS:
         raise ValueError("L2A (BOA) or L1C (TOA) are the only available levels.")
     
@@ -65,7 +75,20 @@ def get_metadata(filename:str = 'index.csv.gz', level:str = 'L2A', force_update:
     
     return db_file
 
-def query(db_file:str, table:str, cc_limit, date_start, date_end, tile):
+def query(db_file:str, table:str, cc_limit:float, date_start:dt.datetime, date_end:dt.datetime, tile:str) -> pd.DataFrame:
+    """Querying Sentinel-2 index database.
+
+    Args:
+        db_file (str): Path to database
+        table (str): Name of the table in database
+        cc_limit (float): Cloud coverage percentage
+        date_start (dt.datetime): Starting date
+        date_end (dt.datetime): Ending date
+        tile (str, list): Grid tile name
+
+    Returns:
+        pd.DataFrame: Result of the query
+    """
     conn = create_connection(db_file)
     cur = conn.cursor()
     try:
@@ -80,8 +103,15 @@ def query(db_file:str, table:str, cc_limit, date_start, date_end, tile):
     
     return result
 
-def geometry_from_file(geometry:str):
-    
+def geometry_from_file(geometry:str) -> list:
+    """Gets a path of any valid geographic file format and returns the overlaping tile names.
+
+    Args:
+        geometry (str): Path to geographic file
+
+    Returns:
+        list: List of tile names
+    """
     if isinstance(geometry, str):
         data = gpd.read_file(geometry)
     else:
