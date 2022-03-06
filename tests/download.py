@@ -43,7 +43,6 @@ def test_2():
     db_file = get_metadata()
     cc_limit = 40
     date_start = dateutil.parser.isoparse('2021-10-15')
-    print(type(date_start))
     date_end = dateutil.parser.isoparse('2021-10-30')
     file = "./data/test.geojson"
     tiles = geometry_from_file(file)
