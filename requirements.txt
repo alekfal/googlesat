@@ -1,3 +1,4 @@
+wheel
 appdirs
 pandas
 geopandas

@@ -34,7 +34,8 @@ def test_1():
     tile = "34SEJ"
     level = "L2A"
     result = query(db_file, f'Sentinel-2_{level}', cc_limit, date_start, date_end, tile)
-
+    result = get_links(result)
+    result.to_csv("test_1.csv")
     time.end
 
 def test_2():
@@ -49,9 +50,11 @@ def test_2():
     level = "L2A"
     result = query(db_file, f'Sentinel-2_{level}', cc_limit, date_start, date_end, tiles)
     result = get_links(result)
+    result.to_csv("test_2.csv")
     time.end
 
 def main():
+    #test_1()
     test_2()
 
 if __name__ == '__main__':
