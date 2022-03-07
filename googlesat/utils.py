@@ -83,7 +83,7 @@ def fill_database(connection:sqlite3, data:pd.DataFrame, name:str = "Fill"):
         name (str, optional): Name of the created table. Defaults to "Fill".
     """
     for d in data:
-        d.to_sql(name, connection, if_exists = 'append')
+        d.to_sql(name, connection, if_exists = 'replace')
 
 def get_links(data:pd.DataFrame) -> pd.DataFrame:
     """Converts google cloud storage links to simple http links
