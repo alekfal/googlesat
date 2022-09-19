@@ -48,7 +48,7 @@ def test_2():
     file = "./data/test.geojson"
     tiles = geometry_from_file(file)
     level = "L2A"
-    result = query(db_file, f'Sentinel-2_{level}', cc_limit, date_start, date_end, tiles)
+    result = query(db_file, f'S2{level}', cc_limit, date_start, date_end, tiles)
     result = get_links(result)
     result.to_csv("test_2.csv")
     time.end

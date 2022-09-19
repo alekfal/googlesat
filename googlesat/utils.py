@@ -4,6 +4,20 @@ import sqlite3
 import gzip
 import pandas as pd
 import urllib.request
+import time
+import sys
+
+def _reporthook(count:int, block_size:float, total_size:float):
+    global start_time
+    if count == 0:
+        start_time = time.time()
+        return
+    duration = time.time() - start_time
+    progress_size = int(count * block_size)
+    speed = int(progress_size / (1024 * 1024 * duration))
+    percent = min(int(count * block_size * 100 / total_size), 100)
+    sys.stdout.write(f"\rDownloading: {percent}%, {round(progress_size / (1024 * 1024), 1)} MB, {speed} MB/s, {int(duration)} seconds passed.")
+    sys.stdout.flush()
 
 def downloader(url:str, name:str) -> str:
     """Download method with urllib library.
@@ -14,9 +28,9 @@ def downloader(url:str, name:str) -> str:
     Returns:
         file (str): Path to file
     """
-    print(f"Downloading file {name} from {url}...")
-    print("This may take a while...")
-    file = urllib.request.urlretrieve(url, name)
+    print(f"Getting file {name} from {url}...")
+    file = urllib.request.urlretrieve(url, name, _reporthook)
+    print("\nDone!")
     return file
 
 def get_cache_dir(subdir:str=None) -> str:
@@ -54,8 +68,8 @@ def extract(file:str, chunksize:int = 10**4) -> pd.DataFrame:
     """
     print(f"Extracting {file}...")
     f = gzip.open(file)
-    data = pd.read_csv(f, chunksize = chunksize)
-
+    data = pd.read_csv(f, usecols = ["SENSING_TIME", "MGRS_TILE", "CLOUD_COVER", "BASE_URL"], chunksize = chunksize)
+    
     return f, data
 
 def create_connection(db_file:str):
@@ -74,7 +88,27 @@ def create_connection(db_file:str):
         if conn:
             return conn
 
-def fill_database(connection:sqlite3, data:pd.DataFrame, name:str = "Fill"):
+def create_table(connection:sqlite3, name:str = "Fill", force = False):
+    cursor = connection.cursor()
+
+    if force:
+        # Creating table
+        SQL = f"DROP TABLE IF EXISTS {name}"
+        cursor.execute(SQL)
+        SQL = f"CREATE TABLE {name} ('index' INTEGER PRIMARY KEY AUTOINCREMENT, SENSING_TIME TEXT NOT NULL, MGRS_TILE TEXT NOT NULL, BASE_URL TEXT NOT NULL, CLOUD_COVER REAL NOT NULL);"
+        cursor.execute(SQL)
+    else:
+        SQL = f"CREATE TABLE IF NOT EXISTS {name} ('index' INTEGER PRIMARY KEY AUTOINCREMENT, SENSING_TIME TEXT NOT NULL, MGRS_TILE TEXT NOT NULL, BASE_URL TEXT NOT NULL, CLOUD_COVER REAL NOT NULL);"
+        cursor.execute(SQL)
+
+
+def create_index(connection:sqlite3, name:str = "Fill"):
+    cursor = connection.cursor()
+    # Creating index
+    SQL =  f"CREATE INDEX IF NOT EXISTS MGRS_TILE_INDEX ON {name}(MGRS_TILE);"
+    cursor.execute(SQL)
+
+def fill_db(connection:sqlite3, data:pd.DataFrame, name:str = "Fill"):
     """Fill an SQL database from pandas dataframe chunks.
 
     Args:
@@ -83,7 +117,10 @@ def fill_database(connection:sqlite3, data:pd.DataFrame, name:str = "Fill"):
         name (str, optional): Name of the created table. Defaults to "Fill".
     """
     for d in data:
-        d.to_sql(name, connection, if_exists = 'replace')
+        d.to_sql(name, connection, if_exists = 'append')
+
+def update_db(connection:sqlite3):
+    pass
 
 def get_links(data:pd.DataFrame) -> pd.DataFrame:
     """Converts google cloud storage links to simple http links
@@ -98,3 +135,6 @@ def get_links(data:pd.DataFrame) -> pd.DataFrame:
     data["URL"] = data["URL"].replace("gs://", "http://storage.googleapis.com/", regex = True)
 
     return data
+
+def clear_cache():
+    pass
