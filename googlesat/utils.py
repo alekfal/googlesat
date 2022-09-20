@@ -8,6 +8,8 @@ import time
 import sys
 
 def _reporthook(count:int, block_size:float, total_size:float):
+    """Generates report for downloading.
+    """
     global start_time
     if count == 0:
         start_time = time.time()
@@ -56,7 +58,7 @@ def get_cache_dir(subdir:str=None) -> str:
 
     return cache_dir
 
-def extract(file:str, chunksize:int = 10**4) -> pd.DataFrame:
+def extract(file:str, chunksize:int = 10**5) -> pd.DataFrame:
     """Extracts a compressed CSV file and stores it into a pandas DataFrame as chunks.
 
     Args:
@@ -71,6 +73,31 @@ def extract(file:str, chunksize:int = 10**4) -> pd.DataFrame:
     data = pd.read_csv(f, usecols = ["SENSING_TIME", "MGRS_TILE", "CLOUD_COVER", "BASE_URL"], chunksize = chunksize)
     
     return f, data
+
+def create_table(connection:sqlite3, name:str = "Fill", force = False):
+    cursor = connection.cursor()
+
+    if force:
+        # Creating table
+        SQL = f"DROP TABLE IF EXISTS {name}"
+        cursor.execute(SQL)
+        SQL = f"CREATE TABLE {name} ('index' INTEGER PRIMARY KEY AUTOINCREMENT, SENSING_TIME TEXT NOT NULL, MGRS_TILE TEXT NOT NULL, BASE_URL TEXT NOT NULL, CLOUD_COVER REAL NOT NULL);"
+        cursor.execute(SQL)
+    else:
+        SQL = f"CREATE TABLE IF NOT EXISTS {name} ('index' INTEGER PRIMARY KEY AUTOINCREMENT, SENSING_TIME TEXT NOT NULL, MGRS_TILE TEXT NOT NULL, BASE_URL TEXT NOT NULL, CLOUD_COVER REAL NOT NULL);"
+        cursor.execute(SQL)
+
+def delete_dublicates(connection:sqlite3, name:str = "Fill"):
+    cursor = connection.cursor()
+    print("Deleting dublicates in database if exist. This may take a while...")
+    SQL = f"DELETE FROM {name} WHERE EXISTS (SELECT 1 FROM {name} qtemp WHERE {name}.BASE_URL = qtemp.BASE_URL AND {name}.rowid > qtemp.rowid);"
+    cursor.execute(SQL)
+
+def create_index(connection:sqlite3, name:str = "Fill"):
+    cursor = connection.cursor()
+    # Creating index
+    SQL =  f"CREATE INDEX IF NOT EXISTS MGRS_TILE_INDEX ON {name}(MGRS_TILE);"
+    cursor.execute(SQL)
 
 def create_connection(db_file:str):
     """Create a database connection to a SQLite database.
@@ -88,26 +115,6 @@ def create_connection(db_file:str):
         if conn:
             return conn
 
-def create_table(connection:sqlite3, name:str = "Fill", force = False):
-    cursor = connection.cursor()
-
-    if force:
-        # Creating table
-        SQL = f"DROP TABLE IF EXISTS {name}"
-        cursor.execute(SQL)
-        SQL = f"CREATE TABLE {name} ('index' INTEGER PRIMARY KEY AUTOINCREMENT, SENSING_TIME TEXT NOT NULL, MGRS_TILE TEXT NOT NULL, BASE_URL TEXT NOT NULL, CLOUD_COVER REAL NOT NULL);"
-        cursor.execute(SQL)
-    else:
-        SQL = f"CREATE TABLE IF NOT EXISTS {name} ('index' INTEGER PRIMARY KEY AUTOINCREMENT, SENSING_TIME TEXT NOT NULL, MGRS_TILE TEXT NOT NULL, BASE_URL TEXT NOT NULL, CLOUD_COVER REAL NOT NULL);"
-        cursor.execute(SQL)
-
-
-def create_index(connection:sqlite3, name:str = "Fill"):
-    cursor = connection.cursor()
-    # Creating index
-    SQL =  f"CREATE INDEX IF NOT EXISTS MGRS_TILE_INDEX ON {name}(MGRS_TILE);"
-    cursor.execute(SQL)
-
 def fill_db(connection:sqlite3, data:pd.DataFrame, name:str = "Fill"):
     """Fill an SQL database from pandas dataframe chunks.
 
@@ -117,10 +124,27 @@ def fill_db(connection:sqlite3, data:pd.DataFrame, name:str = "Fill"):
         name (str, optional): Name of the created table. Defaults to "Fill".
     """
     for d in data:
-        d.to_sql(name, connection, if_exists = 'append')
+        d.to_sql(name, connection, if_exists = "append")
 
-def update_db(connection:sqlite3):
-    pass
+def update_db(connection:sqlite3, data:pd.DataFrame, name:str = "Fill"):
+    """Updates database with new entries.
+    #BUG: Updating is slower than recreating database from scratch.
+
+    Args:
+        connection (sqlite3): SQLite3 database path
+        data (pd.DataFrame): Data in chunks
+        name (str, optional): Name of the created table. Defaults to "Fill".
+    """
+    print("Updating database. This may take a while...")
+    cursor = connection.cursor()
+    for d in data:
+        d.to_sql("temp", connection, if_exists = "replace")
+        
+        SQL = f"INSERT OR IGNORE INTO {name} SELECT * FROM temp"
+        cursor.execute(SQL)
+    
+    SQL = f"DROP TABLE IF EXISTS temp"
+    cursor.execute(SQL)
 
 def get_links(data:pd.DataFrame) -> pd.DataFrame:
     """Converts google cloud storage links to simple http links
@@ -132,7 +156,7 @@ def get_links(data:pd.DataFrame) -> pd.DataFrame:
         pd.DataFrame: New DataFrame with http links
     """
     data["URL"] = data["BASE_URL"]
-    data["URL"] = data["URL"].replace("gs://", "http://storage.googleapis.com/", regex = True)
+    data["URL"] = data["URL"].replace("gs://", "https://storage.googleapis.com/", regex = True)
 
     return data
 
