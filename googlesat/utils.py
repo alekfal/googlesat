@@ -90,7 +90,7 @@ def create_table(connection:sqlite3, name:str = "Fill", force = False):
 def delete_dublicates(connection:sqlite3, name:str = "Fill"):
     cursor = connection.cursor()
     print("Deleting dublicates in database if exist. This may take a while...")
-    SQL = f"DELETE FROM {name} WHERE EXISTS (SELECT 1 FROM {name} qtemp WHERE {name}.BASE_URL = qtemp.BASE_URL AND {name}.rowid > qtemp.rowid);"
+    SQL = f"DELETE FROM {name} WHERE 'index' NOT IN (SELECT MIN('index') FROM {name} GROUP BY BASE_URL);"
     cursor.execute(SQL)
 
 def create_index(connection:sqlite3, name:str = "Fill"):
@@ -124,7 +124,11 @@ def fill_db(connection:sqlite3, data:pd.DataFrame, name:str = "Fill"):
         name (str, optional): Name of the created table. Defaults to "Fill".
     """
     for d in data:
-        d.to_sql(name, connection, if_exists = "append")
+        # Take maximum allowed chunksize for multiple insertions 
+        cols = d.shape[1]
+        chunksize = 999 // (cols + 1)
+        
+        d.to_sql(name, connection, if_exists = "append", method='multi', chunksize = chunksize)
 
 def update_db(connection:sqlite3, data:pd.DataFrame, name:str = "Fill"):
     """Updates database with new entries.
@@ -138,9 +142,12 @@ def update_db(connection:sqlite3, data:pd.DataFrame, name:str = "Fill"):
     print("Updating database. This may take a while...")
     cursor = connection.cursor()
     for d in data:
-        d.to_sql("temp", connection, if_exists = "replace")
+        # Take maximum allowed chunksize for multiple insertions
+        cols = d.shape[1]
+        chunksize = 999 // (cols + 1)
+        d.to_sql("temp", connection, if_exists = "replace", method='multi', chunksize = chunksize)
         
-        SQL = f"INSERT OR IGNORE INTO {name} SELECT * FROM temp"
+        SQL = f"INSERT OR IGNORE INTO {name} VALUES (SELECT * FROM temp);"
         cursor.execute(SQL)
     
     SQL = f"DROP TABLE IF EXISTS temp"

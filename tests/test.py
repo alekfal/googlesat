@@ -78,7 +78,7 @@ def check_unique(level = "L2A"):
     cache = get_cache_dir(subdir = level)
     db_file = os.path.join(cache, f"db_{level}.db")    
     conn = create_connection(db_file)
-    query = "SELECT DISTINCT *, COUNT(*) c FROM S2L2A GROUP BY BASE_URL HAVING c > 1"
+    query = "SELECT *, COUNT(*) c FROM S2L2A GROUP BY BASE_URL HAVING c > 1"
     result = pd.read_sql(query, conn)    
     print(result)
 

@@ -68,31 +68,52 @@ def get_metadata(level:str = 'L2A', force_update:bool = False) -> str:
                     conn.close() 
         else:
             try:
-                file = downloader(url, filename)
-                conn = create_connection(db_file)
-                file, metadata = extract(filename)
-                
-                create_table(conn, name = table_name)
-                fill_db(conn, metadata, name = table_name)
-                create_index(conn, name = table_name)
-                conn.close()
+                if not os.path.exists(db_file):
+                    file = downloader(url, filename)
+                    conn = create_connection(db_file)
+                    file, metadata = extract(filename)
+                    
+                    create_table(conn, name = table_name)
+                    fill_db(conn, metadata, name = table_name)
+                    create_index(conn, name = table_name)
+                    conn.close()
+                else:
+                    file = downloader(url, filename)
+                    conn = create_connection(db_file)
+                    file, metadata = extract(filename)
+                    
+                    create_table(conn, name = table_name)
+                    update_db(conn, metadata, name = table_name)
+                    create_index(conn, name = table_name)
+                    conn.close()
             except:
                 raise FileNotFoundError(f"Could not found {filename}.")
 
     elif force_update is True:
-        file = downloader(url, filename)
-        conn = create_connection(db_file)
-        file, metadata = extract(filename)
-        create_table(conn, name = table_name)
-        update_db(conn, metadata, name = table_name) 
-        create_index(conn, name = table_name)
-        conn.close()
+        if not os.path.exists(db_file):
+            file = downloader(url, filename)
+            conn = create_connection(db_file)
+            file, metadata = extract(filename)
+            
+            create_table(conn, name = table_name)
+            fill_db(conn, metadata, name = table_name)
+            create_index(conn, name = table_name)
+            conn.close()
+        else:
+            file = downloader(url, filename)
+            conn = create_connection(db_file)
+            file, metadata = extract(filename)
+            
+            create_table(conn, name = table_name)
+            update_db(conn, metadata, name = table_name)
+            create_index(conn, name = table_name)
+            conn.close()
     else:
         raise ValueError("Argument force_update is bool.")
 
-    #conn = create_connection(db_file)
-    #delete_dublicates(conn, table_name)
-    #conn.close()
+    conn = create_connection(db_file)
+    delete_dublicates(conn, table_name)
+    conn.close()
 
     return db_file, table_name
 
