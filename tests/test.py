@@ -3,10 +3,9 @@ import time
 import os
 from googlesat.sentinel import get_metadata, query, geometry_from_file
 from googlesat.utils import get_links
-
-#CHECK UNIQUE
 import pandas as pd
 from googlesat.utils import create_connection, get_cache_dir
+from googlesat.downloader import get_data
 
 class Time:
     """Calculate elapsing time.
@@ -42,6 +41,13 @@ def test_DB_L2A_no_geometry():
     result = query(db_file, table_name, cc_limit, date_start, date_end, tile)
     result = get_links(result)
     result.to_csv("test_1.csv")
+
+     # Get data
+    GOOGLE_SAT_DATA = "/home/tars/Desktop/RSLab/GOOGLE_SAT_DATA"
+    scenes = result["URL"].tolist()
+    for scene in scenes:
+        download_sentinel(scene, GOOGLE_SAT_DATA)    
+
     time.end
 
 def test_DB_L2A_with_geometry():
@@ -57,7 +63,6 @@ def test_DB_L2A_with_geometry():
     result = query(db_file, table_name, cc_limit, date_start, date_end, tiles)
     result = get_links(result)
     result.to_csv("test_2.csv")
-    time.end
 
 def test_DB_L1c_with_geometry():
     time = Time()
@@ -71,7 +76,7 @@ def test_DB_L1c_with_geometry():
     tiles = geometry_from_file(file)
     result = query(db_file, table_name, cc_limit, date_start, date_end, tiles)
     result = get_links(result)
-    result.to_csv("test_2.csv")
+    result.to_csv("test_3.csv")
     time.end
 
 def check_unique(level = "L2A"):
@@ -86,14 +91,24 @@ def check_unique(level = "L2A"):
     result = pd.read_sql(query, conn)    
     print(result)
 
-def test_download_data(CSVfile):
+def test_download_data(CSVfile, GOOGLE_SAT_DATA):
     time = Time()
+    time.start
+    result = pd.read_csv(CSVfile)
+    # Get data
+    scenes = result["URL"].tolist()
+    for scene in scenes:
+        get_data(scene, GOOGLE_SAT_DATA)
+    time.end
 
 def main():
     #test_DB_L2A_no_geometry()
     test_DB_L2A_with_geometry()
     #test_DB_L1C_with_geometry()
-    check_unique()
+    #check_unique()
+    test_download_data("./test_2.csv", "/home/tars/Desktop/RSLab/GOOGLE_SAT_DATA")
+
+
 
 if __name__ == '__main__':
     main() 

@@ -4,7 +4,7 @@ import pandas as pd
 import geopandas as gpd
 import pkg_resources
 
-from .utils import create_table, create_index, delete_dublicates, extract, get_cache_dir, downloader, create_connection, fill_db, update_db
+from googlesat.utils import create_table, create_index, delete_dublicates, extract, get_cache_dir, downloader, create_connection, fill_db, update_db
 
 # Sentinel 2 metadata index file links to GCP
 METADATA_URL = {'L1C': 'http://storage.googleapis.com/gcp-public-data-sentinel-2/index.csv.gz',
@@ -14,12 +14,13 @@ METADATA_URL = {'L1C': 'http://storage.googleapis.com/gcp-public-data-sentinel-2
 # Setting available options
 OPTIONS = ['L2A', 'L1C']
 
-def get_metadata(level:str = 'L2A', force_update:bool = False) -> str:
+def get_metadata(level:str = 'L2A', store:str = None, force_update:bool = False) -> str:
     """Downloads and updates index files from GCP. Also, creates/updates a database with the same
     data.
 
     Args:
         level (str, optional): Sentinel 2 data level (L2A->BOA, L1C->TOA). Defaults to 'L2A'
+        store (str, optional): Store to save database. If None then a directory is being created in cache. Defaults to None
         force_update (bool, optional): Force to update index file. Defaults to False
 
     Returns:
@@ -35,7 +36,12 @@ def get_metadata(level:str = 'L2A', force_update:bool = False) -> str:
     
     # Getting link for user defined level
     url = METADATA_URL.get(level)
-    cache = get_cache_dir(subdir = level)
+    
+    if store in None:
+        cache = get_cache_dir(subdir = level)
+    else:
+        cache = store
+
     filename = os.path.join(cache, filename)
     
     db_name = f"db_{level}.db"
@@ -57,6 +63,7 @@ def get_metadata(level:str = 'L2A', force_update:bool = False) -> str:
                 file, metadata = extract(filename)
                 update_db(conn, metadata, name = table_name) 
                 create_index(conn, name = table_name)
+                conn.commit()
                 conn.close()
             else:
                 if not os.path.exists(db_file):
@@ -65,6 +72,7 @@ def get_metadata(level:str = 'L2A', force_update:bool = False) -> str:
                     create_table(conn, name = table_name)
                     fill_db(conn, metadata, name = table_name)
                     create_index(conn, name = table_name)
+                    conn.commit()
                     conn.close() 
         else:
             try:
@@ -76,6 +84,7 @@ def get_metadata(level:str = 'L2A', force_update:bool = False) -> str:
                     create_table(conn, name = table_name)
                     fill_db(conn, metadata, name = table_name)
                     create_index(conn, name = table_name)
+                    conn.commit()
                     conn.close()
                 else:
                     file = downloader(url, filename)
@@ -85,6 +94,7 @@ def get_metadata(level:str = 'L2A', force_update:bool = False) -> str:
                     create_table(conn, name = table_name)
                     update_db(conn, metadata, name = table_name)
                     create_index(conn, name = table_name)
+                    conn.commit()
                     conn.close()
             except:
                 raise FileNotFoundError(f"Could not found {filename}.")
@@ -98,6 +108,7 @@ def get_metadata(level:str = 'L2A', force_update:bool = False) -> str:
             create_table(conn, name = table_name)
             fill_db(conn, metadata, name = table_name)
             create_index(conn, name = table_name)
+            conn.commit()
             conn.close()
         else:
             file = downloader(url, filename)
@@ -107,12 +118,14 @@ def get_metadata(level:str = 'L2A', force_update:bool = False) -> str:
             create_table(conn, name = table_name)
             update_db(conn, metadata, name = table_name)
             create_index(conn, name = table_name)
+            conn.commit()
             conn.close()
     else:
         raise ValueError("Argument force_update is bool.")
 
     conn = create_connection(db_file)
     delete_dublicates(conn, table_name)
+    conn.commit()
     conn.close()
 
     return db_file, table_name

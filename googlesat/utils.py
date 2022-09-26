@@ -10,6 +10,7 @@ import sys
 def _reporthook(count:int, block_size:float, total_size:float):
     """Generates report for downloading.
     """
+
     global start_time
     if count == 0:
         start_time = time.time()
@@ -21,7 +22,7 @@ def _reporthook(count:int, block_size:float, total_size:float):
     sys.stdout.write(f"\rDownloading: {percent}%, {round(progress_size / (1024 * 1024), 1)} MB, {speed} MB/s, {int(duration)} seconds passed.")
     sys.stdout.flush()
 
-def downloader(url:str, name:str) -> str:
+def downloader(url:str, name:str, verbose = True) -> str:
     """Download method with urllib library.
 
     Args:
@@ -30,9 +31,13 @@ def downloader(url:str, name:str) -> str:
     Returns:
         file (str): Path to file
     """
-    print(f"Getting file {name} from {url}...")
-    file = urllib.request.urlretrieve(url, name, _reporthook)
-    print("\nDone!")
+    if verbose:
+        print(f"Getting file {name} from {url}...")
+        file = urllib.request.urlretrieve(url, name, _reporthook)
+        print("\nDone!")
+    else:
+        file = urllib.request.urlretrieve(url, name)
+
     return file
 
 def get_cache_dir(subdir:str=None) -> str:
@@ -44,6 +49,7 @@ def get_cache_dir(subdir:str=None) -> str:
     Returns:
         str: Path to package cache directory
     """
+
     cache_dir = os.environ.get("GOOGLESAT_CACHE_DIR")
 
     if cache_dir is None:
@@ -68,6 +74,7 @@ def extract(file:str, chunksize:int = 10**5) -> pd.DataFrame:
     Returns:
         pd.DataFrame: Pandas DataFrame into chunks
     """
+
     print(f"Extracting {file}...")
     f = gzip.open(file)
     data = pd.read_csv(f, usecols = ["SENSING_TIME", "MGRS_TILE", "CLOUD_COVER", "BASE_URL"], chunksize = chunksize)
@@ -75,6 +82,14 @@ def extract(file:str, chunksize:int = 10**5) -> pd.DataFrame:
     return f, data
 
 def create_table(connection:sqlite3, name:str = "Fill", force = False):
+    """Create table to database.
+
+    Args:
+        connection (sqlite3): Connection to database
+        name (str, optional): Name of the table. Defaults to "Fill"
+        force (bool, optional): Force table creation. Defaults to False
+    """
+
     cursor = connection.cursor()
 
     if force:
@@ -88,12 +103,26 @@ def create_table(connection:sqlite3, name:str = "Fill", force = False):
         cursor.execute(SQL)
 
 def delete_dublicates(connection:sqlite3, name:str = "Fill"):
+    """Delete dublicates from table.
+
+    Args:
+        connection (sqlite3): Connection to database
+        name (str, optional): Name of the table. Defaults to "Fill".
+    """
+
     cursor = connection.cursor()
     print("Deleting dublicates in database if exist. This may take a while...")
-    SQL = f"DELETE FROM {name} WHERE 'index' NOT IN (SELECT MIN('index') FROM {name} GROUP BY BASE_URL);"
+    SQL = f"DELETE FROM {name} WHERE rowid NOT IN (SELECT MIN(rowid) FROM {name} GROUP BY BASE_URL);"
     cursor.execute(SQL)
 
 def create_index(connection:sqlite3, name:str = "Fill"):
+    """Create index for the table.
+
+    Args:
+        connection (sqlite3): Connection to database
+        name (str, optional): Name of the table. Defaults to "Fill".
+    """
+
     cursor = connection.cursor()
     # Creating index
     SQL =  f"CREATE INDEX IF NOT EXISTS MGRS_TILE_INDEX ON {name}(MGRS_TILE);"
@@ -105,6 +134,7 @@ def create_connection(db_file:str):
     Args:
         db_file (str): Path to SQLite database
     """
+
     print(f"Connecting to {db_file}...")
     conn = None
     try:
@@ -123,6 +153,7 @@ def fill_db(connection:sqlite3, data:pd.DataFrame, name:str = "Fill"):
         data (pd.DataFrame): Data in chunks
         name (str, optional): Name of the created table. Defaults to "Fill".
     """
+
     for d in data:
         # Take maximum allowed chunksize for multiple insertions 
         cols = d.shape[1]
@@ -139,6 +170,7 @@ def update_db(connection:sqlite3, data:pd.DataFrame, name:str = "Fill"):
         data (pd.DataFrame): Data in chunks
         name (str, optional): Name of the created table. Defaults to "Fill".
     """
+
     print("Updating database. This may take a while...")
     cursor = connection.cursor()
     for d in data:
@@ -149,7 +181,7 @@ def update_db(connection:sqlite3, data:pd.DataFrame, name:str = "Fill"):
         
         SQL = f"INSERT OR IGNORE INTO {name} VALUES (SELECT * FROM temp);"
         cursor.execute(SQL)
-    
+
     SQL = f"DROP TABLE IF EXISTS temp"
     cursor.execute(SQL)
 
@@ -162,6 +194,7 @@ def get_links(data:pd.DataFrame) -> pd.DataFrame:
     Returns:
         pd.DataFrame: New DataFrame with http links
     """
+
     data["URL"] = data["BASE_URL"]
     data["URL"] = data["URL"].replace("gs://", "https://storage.googleapis.com/", regex = True)
 
