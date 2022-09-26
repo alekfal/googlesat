@@ -41,13 +41,6 @@ def test_DB_L2A_no_geometry():
     result = query(db_file, table_name, cc_limit, date_start, date_end, tile)
     result = get_links(result)
     result.to_csv("test_1.csv")
-
-     # Get data
-    GOOGLE_SAT_DATA = "/home/tars/Desktop/RSLab/GOOGLE_SAT_DATA"
-    scenes = result["URL"].tolist()
-    for scene in scenes:
-        download_sentinel(scene, GOOGLE_SAT_DATA)    
-
     time.end
 
 def test_DB_L2A_with_geometry():
@@ -64,7 +57,7 @@ def test_DB_L2A_with_geometry():
     result = get_links(result)
     result.to_csv("test_2.csv")
 
-def test_DB_L1c_with_geometry():
+def test_DB_L1C_with_geometry():
     time = Time()
     time.start
     level = "L1C"
@@ -77,6 +70,25 @@ def test_DB_L1c_with_geometry():
     result = query(db_file, table_name, cc_limit, date_start, date_end, tiles)
     result = get_links(result)
     result.to_csv("test_3.csv")
+    time.end
+
+def test_huge_query():
+    print ("Count time to update...")
+    time = Time()
+    time.start
+    level = "L1C"
+    db_file, table_name = get_metadata(level = level)
+    cc_limit = 80
+    date_start = dateutil.parser.isoparse('2019-11-01')
+    date_end = dateutil.parser.isoparse('2020-12-31')
+    tiles = ["34TGL","34TGM","34SEF","34SEG","34SEH","34SEJ","35TLE","35TLF","34SFF","34SFG","34SFH","34SFJ","34SCJ","34TFL","35SPA","35SQA","34TDL","35SLC","35SLD","35SLU","35SLV","35SMA","34TDK","35SMB","35SMC","35SMD","35SMU","35SMV","35SNA","34TEK","34TEL","35SNV","34TFK","35TMF","35SKA","35TMG","35SKB","35SKC","34SGE","35SKD","34SGF","34SGG","34SGH","34SGJ","35SKU","35SKV","35SLA","34TCK","35SLB","34SDG","34SDH","34SDJ","34TGK"]
+    time.end
+    print ("Count time to query...")
+    time = Time()
+    time.start
+    result = query(db_file, table_name, cc_limit, date_start, date_end, tiles)
+    result = get_links(result)
+    result.to_csv("test_4.csv")
     time.end
 
 def check_unique(level = "L2A"):
@@ -92,21 +104,23 @@ def check_unique(level = "L2A"):
     print(result)
 
 def test_download_data(CSVfile, GOOGLE_SAT_DATA):
-    time = Time()
-    time.start
+
     result = pd.read_csv(CSVfile)
     # Get data
     scenes = result["URL"].tolist()
     for scene in scenes:
+        time = Time()
+        time.start
         get_data(scene, GOOGLE_SAT_DATA)
-    time.end
+        time.end
 
 def main():
-    #test_DB_L2A_no_geometry()
+    test_DB_L2A_no_geometry()
     test_DB_L2A_with_geometry()
-    #test_DB_L1C_with_geometry()
-    #check_unique()
-    test_download_data("./test_2.csv", "/home/tars/Desktop/RSLab/GOOGLE_SAT_DATA")
+    test_DB_L1C_with_geometry()
+    check_unique()
+    test_huge_query()
+    #test_download_data("./test_1.csv", "/home/tars/Desktop/RSLab/GOOGLE_SAT_DATA")
 
 
 
