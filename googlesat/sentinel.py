@@ -37,7 +37,7 @@ def get_metadata(level:str = 'L2A', store:str = None, force_update:bool = False)
     # Getting link for user defined level
     url = METADATA_URL.get(level)
     
-    if store in None:
+    if store is None:
         cache = get_cache_dir(subdir = level)
     else:
         cache = store
@@ -64,6 +64,8 @@ def get_metadata(level:str = 'L2A', store:str = None, force_update:bool = False)
                 update_db(conn, metadata, name = table_name) 
                 create_index(conn, name = table_name)
                 conn.commit()
+                delete_dublicates(conn, table_name)
+                conn.commit()
                 conn.close()
             else:
                 if not os.path.exists(db_file):
@@ -72,6 +74,8 @@ def get_metadata(level:str = 'L2A', store:str = None, force_update:bool = False)
                     create_table(conn, name = table_name)
                     fill_db(conn, metadata, name = table_name)
                     create_index(conn, name = table_name)
+                    conn.commit()
+                    delete_dublicates(conn, table_name)
                     conn.commit()
                     conn.close() 
         else:
@@ -85,6 +89,8 @@ def get_metadata(level:str = 'L2A', store:str = None, force_update:bool = False)
                     fill_db(conn, metadata, name = table_name)
                     create_index(conn, name = table_name)
                     conn.commit()
+                    delete_dublicates(conn, table_name)
+                    conn.commit()
                     conn.close()
                 else:
                     file = downloader(url, filename)
@@ -94,6 +100,8 @@ def get_metadata(level:str = 'L2A', store:str = None, force_update:bool = False)
                     create_table(conn, name = table_name)
                     update_db(conn, metadata, name = table_name)
                     create_index(conn, name = table_name)
+                    conn.commit()
+                    delete_dublicates(conn, table_name)
                     conn.commit()
                     conn.close()
             except:
@@ -109,6 +117,8 @@ def get_metadata(level:str = 'L2A', store:str = None, force_update:bool = False)
             fill_db(conn, metadata, name = table_name)
             create_index(conn, name = table_name)
             conn.commit()
+            delete_dublicates(conn, table_name)
+            conn.commit()
             conn.close()
         else:
             file = downloader(url, filename)
@@ -119,14 +129,11 @@ def get_metadata(level:str = 'L2A', store:str = None, force_update:bool = False)
             update_db(conn, metadata, name = table_name)
             create_index(conn, name = table_name)
             conn.commit()
+            delete_dublicates(conn, table_name)
+            conn.commit()
             conn.close()
     else:
         raise ValueError("Argument force_update is bool.")
-
-    conn = create_connection(db_file)
-    delete_dublicates(conn, table_name)
-    conn.commit()
-    conn.close()
 
     return db_file, table_name
 
