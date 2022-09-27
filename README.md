@@ -1,7 +1,7 @@
 # googlesat
 
 This software is designed to download Sentinel 2 (L1C &amp; L2A) from Google Cloud Platform and **does not require an google account and a creation of a GCP project** for data searching or downloading.
- 
+
 You can read more about the public Google data access [here](https://cloud.google.com/storage/docs/public-datasets/) and for Sentinel-2 data [here](https://cloud.google.com/storage/docs/public-datasets/sentinel-2).
 
 ## Introduction
@@ -9,7 +9,7 @@ You can read more about the public Google data access [here](https://cloud.googl
 The ```googlesat``` Python package is developed for searching and downloading data from GCP. In the GCP bucket, Google, to help locate data of interest, has published an index CSV file for both product types (L1C, L2A) of the Sentinel-2 data that are available for downloading.
 Using ```googlesat``` the index CSV file is downloaded; either for L1C, L2A or both (a seperate database for each product is created) and inserted in a SQLite database in order to avoid using Google's BigQuery, that requires an Google account and a creation of a GCP project for data searching. Every time a user runs the software the database **if needed** (CSV file is updated by Google daily) gets the required updates.
 
-Also a downloader is developed to download the results from queries in the database. For downloading data without using ```gsutils``` a method to convert ```gs``` to simple ```http``` links is developed. Then the downloader uses these links to build the SAFE format file structure and download the files. 
+Also, a downloader is provided with this software to download the results from querying the database. The downloading procedure is done without using ```gsutils```, so a convertion method of ```gs``` to simple ```https``` links is developed. Then, the downloader use these links to download the ```manifest.xml``` file and extracts all the required informations from the file to build the SAFE format folder structure and download the rest of the files (images, metadata, etc). You can find more information about the SAFE file structure [here](https://earth.esa.int/eogateway/activities/safe-the-standard-archive-format-for-europe/safe-2.x-basic-information).
 
 ## Installation Notes
 
@@ -107,6 +107,6 @@ for scene in scenes:
     get_data(scene, GOOGLE_SAT_DATA)
 ```
 
-## Citation
+## References
 
 This software is based on the open source project [fetchLandsatSentinelFromGoogleCloud](https://github.com/vascobnunes/fetchLandsatSentinelFromGoogleCloud).
