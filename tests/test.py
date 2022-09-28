@@ -114,14 +114,31 @@ def test_download_data(CSVfile, GOOGLE_SAT_DATA):
         get_data(scene, GOOGLE_SAT_DATA)
         time.end
 
+def test_complete_L2A(GOOGLE_SAT_DATA):
+    time = Time()
+    time.start
+    level = "L2A"
+    db_file, table_name = get_metadata(level = level)
+    cc_limit = 100
+    date_start = dateutil.parser.isoparse('2022-08-25')
+    date_end = dateutil.parser.isoparse('2022-08-30')
+    tile = "35TLF"
+    result = query(db_file, table_name, cc_limit, date_start, date_end, tile)
+    result = get_links(result)
+    # Get data
+    scenes = result["URL"].tolist()
+    for scene in scenes:
+        get_data(scene, GOOGLE_SAT_DATA)
+    time.end
+
 def main():
     test_DB_L2A_no_geometry()
     test_DB_L2A_with_geometry()
     test_DB_L1C_with_geometry()
     check_unique()
     test_huge_query()
-    #test_download_data("./test_1.csv", "/home/tars/Desktop/RSLab/GOOGLE_SAT_DATA")
-
+    test_download_data("./test_1.csv", "/home/tars/Desktop/RSLab/GOOGLE_SAT_DATA")
+    test_complete_L2A("/home/tars/Desktop/RSLab/GOOGLE_SAT_DATA")
 
 
 if __name__ == '__main__':

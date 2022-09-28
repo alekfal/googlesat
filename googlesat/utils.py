@@ -178,11 +178,11 @@ def update_db(connection:sqlite3, data:pd.DataFrame, name:str = "Fill"):
         cols = d.shape[1]
         chunksize = 999 // (cols + 1)
         d.to_sql("temp", connection, if_exists = "replace", method='multi', chunksize = chunksize)
-        
-        SQL = f"INSERT OR IGNORE INTO {name} VALUES (SELECT * FROM temp);"
+
+        SQL = f"INSERT OR IGNORE INTO {name} SELECT * FROM temp;"
         cursor.execute(SQL)
 
-    SQL = f"DROP TABLE IF EXISTS temp"
+    SQL = f"DROP TABLE IF EXISTS temp;"
     cursor.execute(SQL)
 
 def get_links(data:pd.DataFrame) -> pd.DataFrame:
