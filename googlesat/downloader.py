@@ -3,6 +3,7 @@ import glob
 import xml.etree.ElementTree as Etree
 from googlesat.utils import downloader
 from urllib.request import HTTPError
+import posixpath
 
 def _readXML(path:str, file:str) -> Etree.Element:
     """Reads XML file.
@@ -30,7 +31,7 @@ def get_manifest(link:str, scene:str, verbose:bool = False) -> str:
     """
 
     manifest = os.path.join(scene, 'manifest.safe')
-    manifest_url = os.path.join(link, "manifest.safe")
+    manifest_url = posixpath.join(link, "manifest.safe")
     
     # Download manifest file
     if os.path.exists(manifest):
@@ -66,7 +67,7 @@ def get_data(link:str, store:str, verbose:bool = False):
             pass
         else:
             filepath = os.path.join(scene, file.attrib["href"].split("./")[1])
-            fileurl = os.path.join(link, file.attrib["href"].split("./")[1])
+            fileurl = posixpath.join(link, file.attrib["href"].split("./")[1])
             file_folder = os.path.split(filepath)[0]
             if not os.path.exists(file_folder):
                 os.makedirs(file_folder)
@@ -90,7 +91,8 @@ def get_data(link:str, store:str, verbose:bool = False):
                 xsds = ["S2_PDI_Level-2A_Datastrip_Metadata.xsd", "S2_PDI_Level-2A_Tile_Metadata.xsd", "S2_User_Product_Level-2A_Metadata.xsd"]
                 for xsd in xsds:
                     try:
-                        downloader(os.path.join(link, dir, xsd), os.path.join(scene, dir, xsd), verbose = verbose)
+                        url = posixpath.join(link, dir, xsd)
+                        downloader(url, os.path.join(scene, dir, xsd), verbose = verbose)
                     except HTTPError as error:
                         print(f"Error while downloading {fileurl} [{error}]")
                         continue
