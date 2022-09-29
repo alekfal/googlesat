@@ -17,7 +17,7 @@ def _reporthook(count:int, block_size:float, total_size:float):
         return
     duration = time.time() - start_time
     progress_size = int(count * block_size)
-    speed = int(progress_size / (1024 * 1024 * duration))
+    speed = int(progress_size / (1024 * 1024 * duration + 1)) # Add +1 to avoid division by zero error
     percent = min(int(count * block_size * 100 / total_size), 100)
     sys.stdout.write(f"\rDownloading: {percent}%, {round(progress_size / (1024 * 1024), 1)} MB, {speed} MB/s, {int(duration)} seconds passed.")
     sys.stdout.flush()
