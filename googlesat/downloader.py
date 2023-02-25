@@ -83,7 +83,7 @@ def get_data(link:str, store:str, verbose:bool = False):
         if not os.path.exists(os.path.join(scene, dir)):
             os.makedirs(os.path.join(scene, dir))
         
-        if dir is "rep_info":
+        if dir == "rep_info":
             metadata = glob.glob(os.path.join(scene, "MTD*.xml"))[0]
             xml_root = _readXML(os.path.split(metadata)[0], os.path.split(metadata)[1])
             processing_level = xml_root.findall(".//PROCESSING_LEVEL")[0].text
