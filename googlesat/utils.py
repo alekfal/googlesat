@@ -1,5 +1,5 @@
 import os
-import appdirs
+import platformdirs
 import sqlite3
 import gzip
 import pandas as pd
@@ -51,9 +51,8 @@ def get_cache_dir(subdir:str=None) -> str:
     """
 
     cache_dir = os.environ.get("GOOGLESAT_CACHE_DIR")
-
     if cache_dir is None:
-        cache_dir = appdirs.user_cache_dir("googlesat", "googlesat")
+        cache_dir = platformdirs.user_cache_dir("googlesat", "googlesat")
 
     if subdir:
         subdir = subdir if isinstance(subdir, list) else [subdir]
@@ -135,7 +134,7 @@ def create_connection(db_file:str):
         db_file (str): Path to SQLite database
     """
 
-    print(f"Connecting to {db_file}...")
+    print(f"Connecting to {os.path.realpath(db_file)}...")
     conn = None
     try:
         conn = sqlite3.connect(db_file)
