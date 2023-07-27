@@ -41,13 +41,15 @@ def get_metadata(level:str = 'L2A', store:str = None, force_update:bool = False)
         cache = get_cache_dir(subdir = level)
     else:
         cache = store
-
+    
+    # Getting path directory with no aliases
+    cache = os.path.realpath(cache)
+    
     filename = os.path.join(cache, filename)
     
     db_name = f"db_{level}.db"
     table_name = f"S2{level}"
     db_file = os.path.join(cache, db_name)
-
     # At first check if the file exists and it is downloaded at the same day if force_update is False
     if force_update is False:
         if os.path.exists(filename):
