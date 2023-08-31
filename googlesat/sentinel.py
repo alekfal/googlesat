@@ -178,8 +178,10 @@ def geometry_from_file(geometry:str) -> list:
     """
     if isinstance(geometry, str):
         data = gpd.read_file(geometry)
+    elif isinstance(geometry, gpd.GeoDataFrame):
+        data = geometry
     else:
-        raise TypeError("Only str paths are supported!")
+        raise TypeError("Only str paths or gpd.GeoDataFrame are supported!")
     
     path = pkg_resources.resource_filename(__name__, os.path.join('aux', 'sentinel-2_tiling_grid.geojson'))
     tiles = gpd.read_file(path)
