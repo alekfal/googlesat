@@ -18,7 +18,7 @@ def _readXML(path:str, file:str) -> Etree.Element:
 
     return root
 
-def get_manifest(link:str, scene:str, verbose:bool = False) -> str:
+def get_manifest(link:str, scene:str, old_format:bool = False, verbose:bool = False) -> str:
     """Get the manifest.xml file.
 
     Args:
@@ -30,13 +30,23 @@ def get_manifest(link:str, scene:str, verbose:bool = False) -> str:
         str: Path to XML file
     """
 
-    manifest = os.path.join(scene, 'manifest.safe')
-    manifest_url = posixpath.join(link, "manifest.safe")
+    if old_format:
+        manifest = os.path.join(scene, 'L2A_Manifest.xml')
+        manifest_url = posixpath.join(link, "L2A_Manifest.xml")
     
-    # Download manifest file
-    if os.path.exists(manifest):
-        os.remove(manifest)
-    downloader(manifest_url, manifest, verbose = verbose)
+        # Download manifest file
+        if os.path.exists(manifest):
+            os.remove(manifest)
+        
+        downloader(manifest_url, manifest, verbose = verbose)
+    else:
+        manifest = os.path.join(scene, 'manifest.safe')
+        manifest_url = posixpath.join(link, "manifest.safe")
+    
+        # Download manifest file
+        if os.path.exists(manifest):
+            os.remove(manifest)
+        downloader(manifest_url, manifest, verbose = verbose)
 
     return manifest
 
@@ -48,8 +58,9 @@ def get_data(link:str, store:str, verbose:bool = False):
         store (str): Path to store the *.SAFE folder
         verbose (bool, optional): Print option. Defaults to False
     """
-
+    old_format = False
     scene_name = os.path.basename(link)
+    level = scene_name.split("_")[1][3:]
     scene = os.path.join(store, scene_name)
 
     print(f"Getting scene {scene_name}...")
@@ -59,15 +70,34 @@ def get_data(link:str, store:str, verbose:bool = False):
 
     manifest = get_manifest(link, scene, verbose = verbose)    
     xml_root = _readXML(os.path.split(manifest)[0], os.path.split(manifest)[1])
-    files = xml_root.findall("./dataObjectSection/dataObject/*/fileLocation/[@href]")
     
+    manifest_level = xml_root.find(".//xfdu:contentUnit[@unitType]", namespaces={'xfdu': 'urn:ccsds:schema:xfdu:1'})
+    manifest_level = manifest_level.get("unitType")
+    if level == "L2A" and manifest_level == "Product_Level-1C":
+        old_format = True
+        manifest = get_manifest(link, scene, old_format = old_format, verbose = verbose)    
+        xml_root = _readXML(os.path.split(manifest)[0], os.path.split(manifest)[1])
+    
+    files = xml_root.findall("./dataObjectSection/dataObject/*/fileLocation/[@href]")
     for file in files:
-        path = file.attrib["href"].split("./")[1]
+        # Search for an other solution!
+        try:
+            if old_format:
+                path = file.attrib["href"]
+            else:
+                path = file.attrib["href"].split("./")[1]
+        except IndexError:
+            try:
+                components = file.attrib["href"].split("/.")[2].split("/")[1:]
+                path = posixpath.join(*components)
+            except IndexError:
+                path = file.attrib["href"]
+
         if path.startswith("HTML"):
             pass
         else:
-            filepath = os.path.join(scene, file.attrib["href"].split("./")[1])
-            fileurl = posixpath.join(link, file.attrib["href"].split("./")[1])
+            filepath = os.path.join(scene, path)
+            fileurl = posixpath.join(link, path)
             file_folder = os.path.split(filepath)[0]
             if not os.path.exists(file_folder):
                 os.makedirs(file_folder)
