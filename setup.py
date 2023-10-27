@@ -8,7 +8,7 @@ with open('requirements.txt') as f:
 
 setuptools.setup(
     name = "googlesat",
-    version = "0.0.1alpha",
+    version = "0.0.1a0",
     author = "Falagas Alekos",
     author_email = "alek.falagas@gmail.com",
     description = "Download Sentinel 2 data from GCP",
@@ -23,7 +23,6 @@ setuptools.setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
-    python_requires = '>=3.6',
-    dependenct_links=[""],
+    python_requires = '>=3.9',
     install_requires=[required]
 )
