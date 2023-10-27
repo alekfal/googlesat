@@ -8,7 +8,7 @@ with open('requirements.txt') as f:
 
 setuptools.setup(
     name = "googlesat",
-    version = "0.0.1",
+    version = "0.0.1alpha",
     author = "Falagas Alekos",
     author_email = "alek.falagas@gmail.com",
     description = "Download Sentinel 2 data from GCP",
