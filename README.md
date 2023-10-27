@@ -1,5 +1,8 @@
 # googlesat
 
+[![Build Status](https://github.com/alekfal/googlesat/actions/workflows/python-package.yml/badge.svg?branch=development)](https://github.com/alekfal/googlesat/actions)
+[![Code coverage](https://codecov.io/gh/alekfal/googlesat/branch/development/graph/badge.svg)](https://codecov.io/gh/alekfal/googlesat)
+
 This software is designed to download Sentinel 2 (L1C &amp; L2A) from Google Cloud Platform and **does not require an google account and a creation of a GCP project** for data searching or downloading.
 
 You can read more about the public Google data access [here](https://cloud.google.com/storage/docs/public-datasets/) and for Sentinel-2 data [here](https://cloud.google.com/storage/docs/public-datasets/sentinel-2).
