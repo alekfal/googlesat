@@ -1,0 +1,44 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+py-modules = []
+
+[project]
+name = "googlesat"
+version = "0.0.1alpha"
+description = "Download Sentinel 2 data from GCP"
+license = {text = "MIT"}
+authors = [{name = "Alekos Falagas", email = "alek.falagas@gmail.com"},]
+maintainers = [{name = "Alekos Falagas", email = "alek.falagas@gmail.com"}]
+
+classifiers = [
+    "Intended Audience :: Science/Research",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Scientific/Engineering :: GIS",]
+
+requires-python = ">=3.9"
+dependencies = [
+    "platformdirs",
+    "pandas",
+    "geopandas",
+    "rtree",
+]
+
+[project.optional-dependencies]
+docs = [
+    "sphinx",
+    "sphinx_rtd_theme",
+]
+
+dev = [
+    "pytest",
+    "pytest-cov",
+    "pytest-dependency",
+    "pytest-lazy-fixture",
+    "pytest-mock",
+]

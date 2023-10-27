@@ -18,12 +18,13 @@ def _readXML(path:str, file:str) -> Etree.Element:
 
     return root
 
-def get_manifest(link:str, scene:str, old_format:bool = False, verbose:bool = False) -> str:
+def _get_manifest(link:str, scene:str, old_format:bool = False, verbose:bool = False) -> str:
     """Get the manifest.xml file.
 
     Args:
         link (str): Link to file in GCP Cloud
         scene (str): Path to local image
+        old_format(bool, optional): True if image is in old L2A format. Defaults to false
         verbose (bool, optional): Print option. Defaults to False
 
     Returns:
@@ -68,14 +69,14 @@ def get_data(link:str, store:str, verbose:bool = False):
     if not os.path.exists(scene):
         os.makedirs(scene)
 
-    manifest = get_manifest(link, scene, verbose = verbose)    
+    manifest = _get_manifest(link, scene, verbose = verbose)    
     xml_root = _readXML(os.path.split(manifest)[0], os.path.split(manifest)[1])
     
     manifest_level = xml_root.find(".//xfdu:contentUnit[@unitType]", namespaces={'xfdu': 'urn:ccsds:schema:xfdu:1'})
     manifest_level = manifest_level.get("unitType")
     if level == "L2A" and manifest_level == "Product_Level-1C":
         old_format = True
-        manifest = get_manifest(link, scene, old_format = old_format, verbose = verbose)    
+        manifest = _get_manifest(link, scene, old_format = old_format, verbose = verbose)    
         xml_root = _readXML(os.path.split(manifest)[0], os.path.split(manifest)[1])
     
     files = xml_root.findall("./dataObjectSection/dataObject/*/fileLocation/[@href]")

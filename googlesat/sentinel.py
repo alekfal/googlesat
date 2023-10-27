@@ -186,6 +186,7 @@ def geometry_from_file(geometry:str) -> list:
     path = pkg_resources.resource_filename(__name__, os.path.join('aux', 'sentinel-2_tiling_grid.geojson'))
     tiles = gpd.read_file(path)
     joined = gpd.sjoin(tiles, data)
+    print(joined)
     overlaped_tiles = joined.Name.to_list()
     
     return overlaped_tiles
