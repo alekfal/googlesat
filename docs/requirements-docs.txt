@@ -1,0 +1,10 @@
+pandas
+geopandas
+platformdirs
+rtree
+sphinx
+sphinxcontrib-apidoc
+sphinxcontrib-napoleon
+sphinx_rtd_theme
+myst_parser
+sphinxemoji

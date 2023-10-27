@@ -32,7 +32,11 @@ dependencies = [
 [project.optional-dependencies]
 docs = [
     "sphinx",
+    "sphinxcontrib-apidoc",
+    "sphinxcontrib-napoleon",
     "sphinx_rtd_theme",
+    "myst_parser",
+    "sphinxemoji"
 ]
 
 dev = [
