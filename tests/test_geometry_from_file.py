@@ -1,7 +1,7 @@
 import pytest
 from googlesat.sentinel import geometry_from_file
 
-geometry_from_file_params = [("./data/test.geojson")]
+geometry_from_file_params = [("./test/data/test.geojson")]
 
 @pytest.mark.parametrize("geometry", geometry_from_file_params,)
 def test_geometry_from_file(geometry):
