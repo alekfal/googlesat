@@ -5,9 +5,6 @@ build-backend = "setuptools.build_meta"
 [tool.setuptools]
 py-modules = []
 
-[tool.setuptools.packages.find]
-where = ["googlesat"]
-
 [project]
 name = "googlesat"
 version = "0.0.1a0"
