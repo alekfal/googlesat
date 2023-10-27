@@ -6,7 +6,7 @@ from pandas.testing import assert_frame_equal
 from googlesat.sentinel import get_metadata, query
 from googlesat.utils import get_links
 
-e_data = pd.read_csv("./test/data/test_1.csv", index_col = False).sort_values(by=['BASE_URL'], ascending=True)
+e_data = pd.read_csv("../test/data/test_1.csv", index_col = False).sort_values(by=['BASE_URL'], ascending=True)
 get_metadata_params = [("L2A", None, False, 40, dateutil.parser.isoparse('2021-10-15'),
                         dateutil.parser.isoparse('2021-10-30'), "34SEJ"),]
 
