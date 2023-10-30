@@ -7,7 +7,7 @@ py-modules = []
 
 [project]
 name = "googlesat"
-version = "0.0.1a0"
+version = "0.0.1a1"
 description = "Download Sentinel 2 data from GCP"
 readme = {file = "README.md", content-type='text/markdown'}
 license = {text = "MIT"}
