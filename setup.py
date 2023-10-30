@@ -14,7 +14,7 @@ setuptools.setup(
     description = "Download Sentinel 2 data from GCP",
     long_description = long_description,
     long_description_content_type = "text/markdown",
-    url="nope.gg",
+    url="https://googlesat.readthedocs.io/en/latest/",
     packages = setuptools.find_namespace_packages(),
     include_package_data=True,
     license="MIT",
