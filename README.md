@@ -1,6 +1,7 @@
 # googlesat
 
 [![Build Status](https://github.com/alekfal/googlesat/actions/workflows/python-package.yml/badge.svg?branch=main)](https://github.com/alekfal/googlesat/actions)
+[![Documentation Status](https://readthedocs.org/projects/googlesat/badge/?version=latest)](https://googlesat.readthedocs.io/en/latest/?badge=latest)
 [![Code coverage](https://codecov.io/gh/alekfal/googlesat/branch/main/graph/badge.svg)](https://codecov.io/gh/alekfal/googlesat)
 [![Supported Python versions](https://img.shields.io/pypi/pyversions/googlesat.svg?style=flat-square)](https://pypi.org/project/googlesat/)
 [![Overall downloads](https://pepy.tech/badge/googlesat)](https://pepy.tech/project/googlesat)
