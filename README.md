@@ -22,6 +22,14 @@ Also, a downloader is provided with this software to download the results from q
 
 Install ```googlesat``` using ```pip``` by running the following commands:
 
+From PyPI:
+
+```bash
+pip install googlesat
+```
+
+From source:
+
 ```bash
 git clone https://github.com/alekfal/googlesat.git
 cd googlesat/
